@@ -1,1 +1,1157 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title id="appTitle">City Retail Mart</title>
+  <style>
+    :root {
+      --bg-color: #1a1c1e;
+      --card-bg: #222529;
+      --text-main: #ffffff;
+      --text-sub: #9ea7b0;
+      --accent-color: #58d68d;
+      --accent-light: #82e0aa;
+      --gold-color: #f39c12;
+      --danger-color: #e74c3c;
+      --shadow-glow: 0px 0px 15px rgba(255, 255, 255, 0.15), 5px 5px 12px #121315, -5px -5px 12px #282c31;
+      --shadow-in: inset 3px 3px 6px #121315, inset -3px -3px 6px #282c31;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-color); color: var(--text-main); font-size: 14px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-color); box-shadow: var(--shadow-glow); z-index: 10; }
+    .shop-title { font-size: 16px; font-weight: 800; color: var(--accent-color); }
+    .badge { font-size: 10px; padding: 3px 8px; border-radius: 20px; background: var(--bg-color); box-shadow: var(--shadow-in); font-weight: bold; color: var(--gold-color); }
+
+    .neu-card { background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow-glow); padding: 14px; margin-bottom: 14px; border: 1px solid rgba(255, 255, 255, 0.05); }
+    .neu-btn { background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; box-shadow: var(--shadow-glow); padding: 8px 12px; font-weight: bold; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .neu-btn:active { box-shadow: var(--shadow-in); transform: scale(0.98); }
+    .neu-btn-primary { background: #1e4d3b; color: #fff; border: 1px solid var(--accent-color); }
+    .neu-btn-warning { background: #5c4113; color: #fff; border: 1px solid var(--gold-color); }
+    .neu-btn-danger { background: #4a1c1a; color: #fff; border: 1px solid var(--danger-color); }
+    .neu-input { width: 100%; padding: 10px 12px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; background: var(--bg-color); outline: none; color: var(--text-main); font-size: 13px; }
+
+    main { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 100px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .top-cart-summary {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--card-bg);
+      border: 1px solid var(--accent-color);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .checkout-payment-box {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background: var(--card-bg);
+      border: 1px solid var(--accent-color);
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 12px;
+      box-shadow: 0px -5px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .category-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; scrollbar-width: none; }
+    .cat-pill { padding: 6px 14px; border-radius: 20px; background: var(--card-bg); font-size: 12px; font-weight: bold; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); whitespace: nowrap; }
+    .cat-pill.active { background: var(--accent-color); color: #000; }
+
+    .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    @media (min-width: 600px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    .product-card { background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow-glow); padding: 12px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255, 255, 255, 0.05); }
+    .product-card.out-of-stock { opacity: 0.5; }
+
+    .tag-category { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(88, 214, 139, 0.2); color: var(--accent-color); font-weight: bold; }
+
+    nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-color); box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.5); display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; border: none; background: none; color: var(--text-sub); font-size: 10px; cursor: pointer; width: 16%; position: relative; }
+    .nav-item.active { color: var(--accent-color); font-weight: bold; }
+    .nav-badge { position: absolute; top: -4px; right: 10px; background: var(--danger-color); color: white; font-size: 10px; font-weight: bold; border-radius: 50%; padding: 2px 6px; display: none; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+    .modal-overlay.active { display: flex; }
+    .login-card { background: var(--card-bg); border-radius: 24px; box-shadow: var(--shadow-glow); padding: 20px; width: 100%; max-width: 400px; border: 1px solid rgba(255, 255, 255, 0.1); }
+
+    .status-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .status-PENDING { background: var(--gold-color); color: #000; }
+    .status-APPROVED { background: var(--accent-color); color: #000; }
+    .status-REJECTED { background: var(--danger-color); color: #fff; }
+
+    @media print { body * { visibility: hidden; } #printableReceipt, #printableReceipt * { visibility: visible; } #printableReceipt { position: absolute; left: 0; top: 0; width: 100%; color:#000; } }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <div class="shop-title" id="displayShopName">City Retail Mart</div>
+      <span class="badge" id="currentUserBadge">GUEST MODE</span>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="neu-btn" onclick="openModal('notifModal')">🔔 <span id="lblRequests">Requests</span> <span id="notifCount" style="color:var(--danger-color)">0</span></button>
+      <button class="neu-btn" onclick="openModal('loginModal')">👤 <span id="loginBtnText">Login</span></button>
+    </div>
+  </header>
+
+  <main>
+    <!-- PAGE 1: SALES -->
+    <div id="pageSales" class="page active">
+      <div class="top-cart-summary">
+        <span style="color:var(--text-main); font-size:13px;"><span id="lblCartItems">🛒 ခြင်းထဲရှိ ပစ္စည်း:</span> <span id="topCartQty" style="color:var(--gold-color);">0</span> <span id="lblQtyUnit">ခု</span></span>
+        <span style="color:var(--accent-color); font-size:15px;"><span id="lblTotal">စုစုပေါင်း:</span> <span id="topCartTotal">0 Ks</span></span>
+      </div>
+
+      <div class="category-bar">
+        <div class="cat-pill active" onclick="filterCategory('ALL', this)" id="catPillALL">အားလုံး (0)</div>
+        <div class="cat-pill" onclick="filterCategory('Liquor', this)" id="catPillLiquor">🍾 အရက် (0)</div>
+        <div class="cat-pill" onclick="filterCategory('Snack', this)" id="catPillSnack">🍗 အမြည်း (0)</div>
+        <div class="cat-pill" onclick="filterCategory('Drink', this)" id="catPillDrink">🥤 အအေး (0)</div>
+        <div class="cat-pill" onclick="filterCategory('Other', this)" id="catPillOther">📦 အခြား (0)</div>
+      </div>
+
+      <input type="text" class="neu-input" id="searchBox" placeholder="🔍 Search Items or Code..." oninput="renderProducts()" style="margin-bottom:12px;">
+      <div class="product-grid" id="productGrid"></div>
+      <button class="neu-btn" id="loadMoreBtn" style="width:100%; margin-top:16px;" onclick="loadMoreProducts()">ဆက်ကြည့်မည်</button>
+    </div>
+
+    <!-- PAGE 2: CHECKOUT -->
+    <div id="pageCheckout" class="page">
+      <div class="neu-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 style="color:var(--accent-color);" id="lblCartTitle">ခြင်းတောင်းထဲရှိ စာရင်း</h3>
+          <button class="neu-btn neu-btn-danger" style="font-size:11px;" id="lblClearCart" onclick="clearCart()">🗑️ Cart အကုန်ရှင်းမည်</button>
+        </div>
+        
+        <div id="cartItemList"></div>
+      </div>
+
+      <div class="checkout-payment-box">
+        <div style="background:var(--bg-color); padding:10px 12px; border-radius:12px; margin-bottom:10px; border:1px solid rgba(255,255,255,0.1);">
+          <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px;">
+            <span id="lblSubtotal">ကျသင့်ငွေ:</span>
+            <span id="checkoutTotalDisplay" style="color:var(--accent-color);">0 Ks</span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+          <div>
+            <label style="font-size:11px; color:var(--text-sub);" id="lblCashReceived">ဝယ်သူပေးငွေ</label>
+            <input type="number" id="cashReceived" class="neu-input" placeholder="0" oninput="calculateChange()" style="margin-top:4px; font-weight:bold;">
+          </div>
+          <div>
+            <label style="font-size:11px; color:var(--text-sub);" id="lblChangeAmount">ပြန်အမ်းငွေ</label>
+            <input type="text" id="changeAmount" class="neu-input" value="0 Ks" readonly style="color:var(--accent-color); font-weight:bold; margin-top:4px;">
+          </div>
+        </div>
+        
+        <button class="neu-btn neu-btn-primary" style="width:100%; padding:12px;" id="lblProcessCheckout" onclick="processCheckout()">ငွေရှင်းမည် (စလစ်ထုတ်မည်)</button>
+      </div>
+    </div>
+
+    <!-- PAGE 3: INVENTORY -->
+    <div id="pageInventory" class="page">
+      <div class="neu-card">
+        <h3 id="lblInvTitle">📦 Stock မန်နေဂျာ (Items 500)</h3>
+        <p style="font-size:11px; color:var(--text-sub); margin-bottom:10px;" id="lblInvSub">Stock အတိုး/အလျော့ ပြုလုပ်ပါက အလိုအလျောက် မှတ်တမ်းဝင်မည်ဖြစ်သည်</p>
+        <input type="text" class="neu-input" id="invSearchBox" placeholder="🔍 Search Inventory..." oninput="renderInventory()" style="margin-bottom:12px;">
+        <div id="inventoryList"></div>
+        <button class="neu-btn" id="loadMoreInvBtn" style="width:100%; margin-top:12px;" onclick="loadMoreInventory()">ဆက်ကြည့်မည်</button>
+      </div>
+    </div>
+
+    <!-- PAGE 4: HISTORY & REPORTS -->
+    <div id="pageHistory" class="page">
+      <div class="neu-card">
+        <h3 style="color:var(--accent-color); margin-bottom:10px;" id="lblReportTitle">📊 Sales Report စနစ်</h3>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <button class="neu-btn neu-btn-primary" style="flex:1;" id="lblReportAll" onclick="generateReport('ALL')">📑 စုစုပေါင်း Report</button>
+          <button class="neu-btn" style="flex:1;" id="lblReportSingle" onclick="generateReport('SINGLE')">🏷️ တခုစီခွဲကြည့်မည်</button>
+        </div>
+        <div id="reportDisplayBox" class="neu-card" style="display:none; background:var(--bg-color); font-size:12px;"></div>
+      </div>
+
+      <div class="neu-card">
+        <h3 id="lblSalesHistoryTitle">📜 အရောင်းမှတ်တမ်းများ (Sale Reports)</h3>
+        <p style="font-size:11px; color:var(--text-sub); margin-bottom:10px;" id="lblSalesHistorySub">အကြမ်းဖျဉ်းပြထားပါသည်၊ နှိပ်၍ အသေးစိတ်ကြည့်နိုင်သည်</p>
+        <div id="salesHistoryList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 5: MANAGEMENT & REQUESTS -->
+    <div id="pageManage" class="page">
+      <div class="neu-card">
+        <h3 id="lblMgmtTitle">⚠️ Damage & Lost (ပျက်စီး/ပျောက်ဆုံး စာရင်းတင်ရန်)</h3>
+        
+        <div style="margin-top:10px;">
+          <label style="font-size:12px;" id="lblMgmtStep1">၁။ Item Code (သို့) နာမည်ဖြင့် ရှာရန်</label>
+          <input type="text" id="mgmtCodeSearch" class="neu-input" placeholder="🔍 Code (သို့) နာမည် ရိုက်ထည့်ပါ..." oninput="filterMgmtSelect()" style="margin-top:4px;">
+        </div>
+        <div style="margin-top:10px;">
+          <label style="font-size:12px;" id="lblMgmtStep2">၂။ ပစ္စည်းရွေးပါ</label>
+          <select id="mgmtItemSelect" class="neu-input" style="margin-top:4px;"></select>
+        </div>
+        <div style="margin-top:10px;">
+          <label style="font-size:12px;" id="lblMgmtStep3">၃။ အမျိုးအစား</label>
+          <select id="mgmtType" class="neu-input" style="margin-top:4px;">
+            <option value="Damage" id="optDamage">Damage (ပျက်စီး - Stock မှ လျှော့မည်)</option>
+            <option value="Lost" id="optLost">Lost (ပျောက်ဆုံး - Stock မှ လျှော့မည်)</option>
+          </select>
+        </div>
+        <div style="margin-top:10px;">
+          <label style="font-size:12px;" id="lblMgmtStep4">၄။ အရေအတွက်/အကြောင်းအရင်း</label>
+          <input type="number" id="mgmtQty" class="neu-input" placeholder="အရေအတွက်" style="margin-top:4px;">
+          <input type="text" id="mgmtReason" class="neu-input" placeholder="အကြောင်းအရင်း" style="margin-top:4px;">
+        </div>
+        <button class="neu-btn neu-btn-primary" style="width:100%; margin-top:12px;" id="lblMgmtSubmit" onclick="submitStockAdjustment()">အတည်ပြုမည် / Request တင်မည်</button>
+      </div>
+    </div>
+
+    <!-- PAGE 6: SETTINGS -->
+    <div id="pageSettings" class="page">
+      <div class="neu-card">
+        <h3 id="lblSettingsTitle">⚙️ ဆိုင်ဆက်တင်များ (Settings)</h3>
+        
+        <!-- Language Selection Input -->
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;" id="lblLanguage">🌐 ဘာသာစကား (Language)</label>
+          <select id="languageSelect" class="neu-input" style="margin-top:4px;" onchange="changeLanguage(this.value)">
+            <option value="my">မြန်မာ (Myanmar)</option>
+            <option value="en">English</option>
+            <option value="th">ไทย (Thai)</option>
+          </select>
+        </div>
+
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;" id="lblShopName">ဆိုင်နာမည်</label>
+          <input type="text" id="shopNameInput" class="neu-input" style="margin-top:4px;">
+        </div>
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;" id="lblShopAddress">လိပ်စာ</label>
+          <input type="text" id="shopAddressInput" class="neu-input" style="margin-top:4px;">
+        </div>
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;" id="lblShopPhone">ဖုန်းနံပါတ်</label>
+          <input type="text" id="shopPhoneInput" class="neu-input" style="margin-top:4px;">
+        </div>
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;" id="lblShopFooter">စလစ်အောက်ခြေစာသား</label>
+          <input type="text" id="shopFooterInput" class="neu-input" style="margin-top:4px;">
+        </div>
+        <button class="neu-btn neu-btn-primary" style="width:100%; margin-top:12px;" id="lblSaveSettings" onclick="saveSettings()">သိမ်းဆည်းမည်</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav>
+    <button class="nav-item active" onclick="switchTab('pageSales', this)"><span>🏪</span><span id="navSales">အရောင်း</span></button>
+    <button class="nav-item" onclick="switchTab('pageCheckout', this)"><span>💳</span><span id="navCheckout">ငွေရှင်းမည်</span><span class="nav-badge" id="checkoutBadge">0</span></button>
+    <button class="nav-item" onclick="switchTab('pageInventory', this)"><span>📦</span><span id="navInventory">ပစ္စည်းများ</span></button>
+    <button class="nav-item" onclick="switchTab('pageHistory', this)"><span>📊</span><span id="navReport">Report</span></button>
+    <button class="nav-item" onclick="switchTab('pageManage', this)"><span>⚠️</span><span id="navDamage">ပျက်/ပျောက်</span></button>
+    <button class="nav-item" onclick="switchTab('pageSettings', this)"><span>⚙️</span><span id="navSettings">ဆက်တင်</span></button>
+  </nav>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="login-card">
+      <h2 style="color:var(--accent-color); text-align:center; font-size:18px;" id="lblLoginHeader">Account Login</h2>
+      <div id="loggedInView" style="display:none; text-align:center; margin-top:10px;">
+        <div id="loggedInUserText" style="font-weight:bold; font-size:16px;"></div>
+        <button class="neu-btn neu-btn-danger" style="width:100%; margin-top:12px;" id="lblLogoutBtn" onclick="handleLogout()">🚪 Logout ထွက်မည်</button>
+      </div>
+      <div id="loginFormView" style="margin-top:10px;">
+        <select id="loginRole" class="neu-input"><option value="Admin">Admin</option><option value="Staff">Staff</option></select>
+        <input type="text" id="loginUser" class="neu-input" placeholder="Username" style="margin-top:8px;">
+        <input type="password" id="loginPass" class="neu-input" placeholder="Password" style="margin-top:8px;">
+        <button class="neu-btn neu-btn-primary" style="width:100%; margin-top:12px;" id="lblSignInBtn" onclick="handleLogin()">Sign In</button>
+      </div>
+      <button class="neu-btn" style="width:100%; margin-top:8px;" id="lblCloseLogin" onclick="closeModal('loginModal')">Close</button>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS & REQUESTS MODAL -->
+  <div class="modal-overlay" id="notifModal">
+    <div class="login-card" style="max-width:480px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 id="lblNotifTitle">📩 Admin Approval Requests</h3>
+        <button class="neu-btn neu-btn-danger" style="font-size:10px;" id="lblClearDone" onclick="clearCompletedRequests()">Clear Done</button>
+      </div>
+      <div id="notifList" style="max-height:300px; overflow-y:auto; margin:12px 0;"></div>
+      <button class="neu-btn" style="width:100%;" id="lblCloseNotif" onclick="closeModal('notifModal')">Close</button>
+    </div>
+  </div>
+
+  <!-- SALE SLIP RECEIPT MODAL -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="neu-card" style="background:#fff; color:#000; width:100%; max-width:340px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; padding: 14px;">
+      <div id="printableReceipt" style="font-family:monospace; font-size:12px; overflow-y: auto; flex: 1; padding-right: 4px;"></div>
+      
+      <div style="display:flex; flex-direction:column; gap:6px; margin-top:10px; border-top: 1px dashed #ccc; padding-top: 8px; flex-shrink: 0;">
+        <button class="neu-btn neu-btn-primary" style="width:100%; font-size:12px;" id="lblPrintSlip" onclick="window.print()">🖨️ Print ထုတ်မည်</button>
+        <button class="neu-btn neu-btn-primary" style="width:100%; font-size:12px; background:#2980b9; border-color:#3498db;" id="lblAddItemsBack" onclick="addItemsBackToCart()">➕ ထပ်ထည့်မည် (Add Items)</button>
+        <button class="neu-btn neu-btn-warning" style="width:100%; font-size:12px;" id="lblReportToAdmin" onclick="sendSlipReportToAdmin()">📩 Report To Admin (မဖျက်သေးပါ)</button>
+        <button class="neu-btn neu-btn-danger" style="width:100%; font-size:12px;" id="lblDeleteSlip" onclick="requestOrDeleteSale()">🗑️ ဖျက်မည် (Delete)</button>
+        <button class="neu-btn" style="width:100%; margin-top:4px; background:#eee; color:#000;" id="lblCloseSlip" onclick="closeModal('receiptModal')">ပိတ်မည်</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = { role: 'GUEST', username: 'Guest' };
+    let products = [];
+    let cart = [];
+    let salesHistory = [];
+    let requests = [];
+    let selectedCategory = 'ALL';
+    let displayedCount = 50;
+    let displayedInvCount = 50;
+    let currentActiveSale = null;
+
+    let currentLang = 'my';
+
+    const translations = {
+      my: {
+        requests: "Requests", login: "Login", guestMode: "GUEST MODE",
+        cartItems: "🛒 ခြင်းထဲရှိ ပစ္စည်း:", qtyUnit: "ခု", total: "စုစုပေါင်း:",
+        catAll: "အားလုံး", catLiquor: "🍾 အရက်", catSnack: "🍗 အမြည်း", catDrink: "🥤 အအေး", catOther: "📦 အခြား",
+        searchPlaceholder: "🔍 Search Items or Code...", loadMore: "ဆက်ကြည့်မည်",
+        cartTitle: "ခြင်းတောင်းထဲရှိ စာရင်း", clearCart: "🗑️ Cart အကုန်ရှင်းမည်", emptyCart: "ခြင်းတောင်းထဲတွင် ပစ္စည်းမရှိသေးပါ",
+        subtotal: "ကျသင့်ငွေ:", cashReceived: "ဝယ်သူပေးငွေ", changeAmount: "ပြန်အမ်းငွေ", notEnoughCash: "ငွေမလုံလောက်ပါ",
+        processCheckout: "ငွေရှင်းမည် (စလစ်ထုတ်မည်)", invTitle: "📦 Stock မန်နေဂျာ (Items 500)",
+        invSub: "Stock အတိုး/အလျော့ ပြုလုပ်ပါက အလိုအလျောက် မှတ်တမ်းဝင်မည်ဖြစ်သည်", invSearchPlaceholder: "🔍 Search Inventory...",
+        reportTitle: "📊 Sales Report စနစ်", reportAll: "📑 စုစုပေါင်း Report", reportSingle: "🏷️ တခုစီခွဲကြည့်မည်",
+        salesHistoryTitle: "📜 အရောင်းမှတ်တမ်းများ (Sale Reports)", salesHistorySub: "အကြမ်းဖျဉ်းပြထားပါသည်၊ နှိပ်၍ အသေးစိတ်ကြည့်နိုင်သည်",
+        noSalesHistory: "အရောင်းမှတ်တမ်း မရှိသေးပါ", viewSlip: "📄 စလစ်ကြည့်ရန်",
+        mgmtTitle: "⚠️ Damage & Lost (ပျက်စီး/ပျောက်ဆုံး စာရင်းတင်ရန်)", mgmtStep1: "၁။ Item Code (သို့) နာမည်ဖြင့် ရှာရန်",
+        mgmtSearchPlaceholder: "🔍 Code (သို့) နာမည် ရိုက်ထည့်ပါ...", mgmtStep2: "၂။ ပစ္စည်းရွေးပါ", mgmtStep3: "၃။ အမျိုးအစား",
+        optDamage: "Damage (ပျက်စီး - Stock မှ လျှော့မည်)", optLost: "Lost (ပျောက်ဆုံး - Stock မှ လျှော့မည်)",
+        mgmtStep4: "၄။ အရေအတွက်/အကြောင်းအရင်း", mgmtQtyPlaceholder: "အရေအတွက်", mgmtReasonPlaceholder: "အကြောင်းအရင်း",
+        mgmtSubmit: "အတည်ပြုမည် / Request တင်မည်", settingsTitle: "⚙️ ဆိုင်ဆက်တင်များ (Settings)", language: "🌐 ဘာသာစကား (Language)",
+        shopName: "ဆိုင်နာမည်", shopAddress: "လိပ်စာ", shopPhone: "ဖုန်းနံပါတ်", shopFooter: "စလစ်အောက်ခြေစာသား", saveSettings: "သိမ်းဆည်းမည်",
+        navSales: "အရောင်း", navCheckout: "ငွေရှင်းမည်", navInventory: "ပစ္စည်းများ", navReport: "Report", navDamage: "ပျက်/ပျောက်", navSettings: "ဆက်တင်",
+        loginHeader: "Account Login", logoutBtn: "🚪 Logout ထွက်မည်", signInBtn: "Sign In", closeBtn: "Close",
+        notifTitle: "📩 Admin Approval Requests", clearDone: "Clear Done",
+        printSlip: "🖨️ Print ထုတ်မည်", addItemsBack: "➕ ထပ်ထည့်မည် (Add Items)", reportToAdmin: "📩 Report To Admin (မဖျက်သေးပါ)",
+        deleteSlip: "🗑️ ဖျက်မည် (Delete)", closeSlip: "ပိတ်မည်", addBtn: "+ Add",
+        receiptFooter:"🌻🌻 အားပေးမှုကို ကျေးဇူးတင်ပါသည်။🌻🌻"
+      },
+      en: {
+        requests: "Requests", login: "Login", guestMode: "GUEST MODE",
+        cartItems: "🛒 Cart Items:", qtyUnit: "pcs", total: "Total:",
+        catAll: "All", catLiquor: "🍾 Liquor", catSnack: "🍗 Snacks", catDrink: "🥤 Drinks", catOther: "📦 Others",
+        searchPlaceholder: "🔍 Search Items or Code...", loadMore: "Load More",
+        cartTitle: "Items in Cart", clearCart: "🗑️ Clear Cart", emptyCart: "No items in cart",
+        subtotal: "Subtotal:", cashReceived: "Cash Received", changeAmount: "Change", notEnoughCash: "Insufficient Cash",
+        processCheckout: "Checkout (Print Slip)", invTitle: "📦 Stock Manager (500 Items)",
+        invSub: "Stock adjustments will be logged automatically", invSearchPlaceholder: "🔍 Search Inventory...",
+        reportTitle: "📊 Sales Report System", reportAll: "📑 Total Summary Report", reportSingle: "🏷️ Itemized Report",
+        salesHistoryTitle: "📜 Sales History", salesHistorySub: "Click on any transaction to view details",
+        noSalesHistory: "No sales history available", viewSlip: "📄 View Slip",
+        mgmtTitle: "⚠️ Damage & Lost Request", mgmtStep1: "1. Search by Item Code or Name",
+        mgmtSearchPlaceholder: "🔍 Enter Code or Name...", mgmtStep2: "2. Select Item", mgmtStep3: "3. Type",
+        optDamage: "Damage (Deduct Stock)", optLost: "Lost (Deduct Stock)",
+        mgmtStep4: "4. Quantity / Reason", mgmtQtyPlaceholder: "Quantity", mgmtReasonPlaceholder: "Reason",
+        mgmtSubmit: "Submit Request", settingsTitle: "⚙️ Shop Settings", language: "🌐 Language",
+        shopName: "Shop Name", shopAddress: "Address", shopPhone: "Phone", shopFooter: "Receipt Footer Note", saveSettings: "Save Settings",
+        navSales: "Sales", navCheckout: "Checkout", navInventory: "Inventory", navReport: "Report", navDamage: "Damage/Lost", navSettings: "Settings",
+        loginHeader: "Account Login", logoutBtn: "🚪 Logout", signInBtn: "Sign In", closeBtn: "Close",
+        notifTitle: "📩 Admin Approval Requests", clearDone: "Clear Done",
+        printSlip: "🖨️ Print Receipt", addItemsBack: "➕ Add Items Back to Cart", reportToAdmin: "📩 Report To Admin",
+        deleteSlip: "🗑️ Delete Slip", closeSlip: "Close", addBtn: "+ Add",
+        receiptFooter: " 🌻🌻 Thank you for your support!🌻🌻"
+      },
+      th: {
+        requests: "คำขอ", login: "เข้าสู่ระบบ", guestMode: "โหมดผู้ใช้ทั่วไป",
+        cartItems: "🛒 สินค้าในตะกร้า:", qtyUnit: "ชิ้น", total: "รวมทั้งหมด:",
+        catAll: "ทั้งหมด", catLiquor: "🍾 สุรา", catSnack: "🍗 ของว่าง", catDrink: "🥤 เครื่องดื่ม", catOther: "📦 อื่นๆ",
+        searchPlaceholder: "🔍 ค้นหาสินค้าหรือรหัส...", loadMore: "โหลดเพิ่มเติม",
+        cartTitle: "รายการสินค้าในตะกร้า", clearCart: "🗑️ ล้างตะกร้า", emptyCart: "ไม่มีสินค้าในตะกร้า",
+        subtotal: "ยอดรวม:", cashReceived: "รับเงินมา", changeAmount: "เงินทอน", notEnoughCash: "เงินไม่พอ",
+        processCheckout: "ชำระเงิน (พิมพ์ใบเสร็จ)", invTitle: "📦 จัดการสต็อก (500 รายการ)",
+        invSub: "การปรับสต็อกจะบันทึกโดยอัตโนมัติ", invSearchPlaceholder: "🔍 ค้นหาสินค้าในสต็อก...",
+        reportTitle: "📊 รายงานการขาย", reportAll: "📑 รายงานสรุปยอดขาย", reportSingle: "🏷️ รายงานแยกตามสินค้า",
+        salesHistoryTitle: "📜 ประวัติการขาย", salesHistorySub: "คลิกที่รายการเพื่อดูรายละเอียด",
+        noSalesHistory: "ไม่มีประวัติการขาย", viewSlip: "📄 ดูใบเสร็จ",
+        mgmtTitle: "⚠️ แจ้งสินค้าชำรุด/สูญหาย", mgmtStep1: "1. ค้นหาด้วยรหัสหรือชื่อสินค้า",
+        mgmtSearchPlaceholder: "🔍 พิมพ์รหัสหรือชื่อสินค้า...", mgmtStep2: "2. เลือกสินค้า", mgmtStep3: "3. ประเภท",
+        optDamage: "ชำรุด (ตัดสต็อก)", optLost: "สูญหาย (ตัดสต็อก)",
+        mgmtStep4: "4. จำนวน / เหตุผล", mgmtQtyPlaceholder: "จำนวน", mgmtReasonPlaceholder: "เหตุผล",
+        mgmtSubmit: "ยืนยัน / ส่งคำขอ", settingsTitle: "⚙️ ตั้งค่าร้านค้า", language: "🌐 ภาษา (Language)",
+        shopName: "ชื่อร้าน", shopAddress: "ที่อยู่", shopPhone: "เบอร์โทรศัพท์", shopFooter: "ข้อความท้ายใบเสร็จ", saveSettings: "บันทึกข้อมูล",
+        navSales: "การขาย", navCheckout: "ชำระเงิน", navInventory: "คลังสินค้า", navReport: "รายงาน", navDamage: "ชำรุด/สูญหาย", navSettings: "ตั้งค่า",
+        loginHeader: "เข้าสู่ระบบ", logoutBtn: "🚪 ออกจากระบบ", signInBtn: "เข้าสู่ระบบ", closeBtn: "ปิด",
+        notifTitle: "📩 คำขอรอการอนุมัติ", clearDone: "ล้างรายการเสร็จสิ้น",
+        printSlip: "🖨️ พิมพ์ใบเสร็จ", addItemsBack: "➕ คืนสินค้าลงตะกร้า", reportToAdmin: "📩 รายงานต่อผู้ดูแล",
+        deleteSlip: "🗑️ ลบใบเสร็จ", closeSlip: "ปิด", addBtn: "+ เพิ่ม",
+        receiptFooter: "🌻🌻 ขอบคุณสำหรับทุกการสนับสนุนนะครับ🌻🌻"
+      }
+    };
+
+    let itemTranslations = {
+      'Grand Royal Whisky': { en: 'Grand Royal Whisky', th: 'แกรนด์ รอยัล วิสกี้', my: 'Grand Royal Whisky' },
+      'Myanmar Beer Can': { en: 'Myanmar Beer Can', th: 'เบียร์พม่า กระป๋อง', my: 'Myanmar Beer Can' },
+      'အာလူးကြော်': { en: 'Potato Chips', th: 'มันฝรั่งทอด', my: 'အာလူးကြော်' },
+      'ကြက်ကြော်': { en: 'Fried Chicken', th: 'ไก่ทอด', my: 'ကြက်ကြော်' },
+      'Coca Cola 1.25L': { en: 'Coca Cola 1.25L', th: 'โค้ก 1.25 ลิตร', my: 'Coca Cola 1.25L' },
+      'Spirulina Water': { en: 'Spirulina Water', th: 'น้ำสไปรูลิน่า', my: 'Spirulina Water' }
+    };
+
+    let shopSettings = {
+      shopName: "City Retail Mart",
+      address: "Yangon, Myanmar",
+      phone: "09123456789",
+      receiptFooter: "အားပေးမှုကို ကျေးဇူးတင်ပါသည်။ နောက်လည်း ကြွခဲ့ပါဦး။"
+    };
+
+    function getItemName(prod) {
+      if (!prod) return '';
+      const baseName = prod.baseName || prod.name;
+      if (itemTranslations[baseName] && itemTranslations[baseName][currentLang]) {
+        return `${itemTranslations[baseName][currentLang]} #${prod.id}`;
+      }
+      return prod.name;
+    }
+
+    function applyLanguageUI() {
+      const lang = translations[currentLang] || translations.my;
+
+      // Update shop footer according to language
+      shopSettings.receiptFooter = lang.receiptFooter;
+      document.getElementById('shopFooterInput').value = shopSettings.receiptFooter;
+
+      document.getElementById('lblRequests').innerText = lang.requests;
+      if (currentUser.role === 'GUEST') {
+        document.getElementById('loginBtnText').innerText = lang.login;
+        document.getElementById('currentUserBadge').innerText = lang.guestMode;
+      }
+      document.getElementById('lblCartItems').innerText = lang.cartItems;
+      document.getElementById('lblQtyUnit').innerText = lang.qtyUnit;
+      document.getElementById('lblTotal').innerText = lang.total;
+      document.getElementById('searchBox').placeholder = lang.searchPlaceholder;
+      document.getElementById('loadMoreBtn').innerText = lang.loadMore;
+
+      document.getElementById('lblCartTitle').innerText = lang.cartTitle;
+      document.getElementById('lblClearCart').innerText = lang.clearCart;
+      document.getElementById('lblSubtotal').innerText = lang.subtotal;
+      document.getElementById('lblCashReceived').innerText = lang.cashReceived;
+      document.getElementById('lblChangeAmount').innerText = lang.changeAmount;
+      document.getElementById('lblProcessCheckout').innerText = lang.processCheckout;
+
+      document.getElementById('lblInvTitle').innerText = lang.invTitle;
+      document.getElementById('lblInvSub').innerText = lang.invSub;
+      document.getElementById('invSearchBox').placeholder = lang.invSearchPlaceholder;
+      document.getElementById('loadMoreInvBtn').innerText = lang.loadMore;
+
+      document.getElementById('lblReportTitle').innerText = lang.reportTitle;
+      document.getElementById('lblReportAll').innerText = lang.reportAll;
+      document.getElementById('lblReportSingle').innerText = lang.reportSingle;
+      document.getElementById('lblSalesHistoryTitle').innerText = lang.salesHistoryTitle;
+      document.getElementById('lblSalesHistorySub').innerText = lang.salesHistorySub;
+
+      document.getElementById('lblMgmtTitle').innerText = lang.mgmtTitle;
+      document.getElementById('lblMgmtStep1').innerText = lang.mgmtStep1;
+      document.getElementById('mgmtCodeSearch').placeholder = lang.mgmtSearchPlaceholder;
+      document.getElementById('lblMgmtStep2').innerText = lang.mgmtStep2;
+      document.getElementById('lblMgmtStep3').innerText = lang.mgmtStep3;
+      document.getElementById('optDamage').innerText = lang.optDamage;
+      document.getElementById('optLost').innerText = lang.optLost;
+      document.getElementById('lblMgmtStep4').innerText = lang.mgmtStep4;
+      document.getElementById('mgmtQty').placeholder = lang.mgmtQtyPlaceholder;
+      document.getElementById('mgmtReason').placeholder = lang.mgmtReasonPlaceholder;
+      document.getElementById('lblMgmtSubmit').innerText = lang.mgmtSubmit;
+
+      document.getElementById('lblSettingsTitle').innerText = lang.settingsTitle;
+      document.getElementById('lblLanguage').innerText = lang.language;
+      document.getElementById('lblShopName').innerText = lang.shopName;
+      document.getElementById('lblShopAddress').innerText = lang.shopAddress;
+      document.getElementById('lblShopPhone').innerText = lang.shopPhone;
+      document.getElementById('lblShopFooter').innerText = lang.shopFooter;
+      document.getElementById('lblSaveSettings').innerText = lang.saveSettings;
+
+      document.getElementById('navSales').innerText = lang.navSales;
+      document.getElementById('navCheckout').innerText = lang.navCheckout;
+      document.getElementById('navInventory').innerText = lang.navInventory;
+      document.getElementById('navReport').innerText = lang.navReport;
+      document.getElementById('navDamage').innerText = lang.navDamage;
+      document.getElementById('navSettings').innerText = lang.navSettings;
+
+      document.getElementById('lblLoginHeader').innerText = lang.loginHeader;
+      document.getElementById('lblLogoutBtn').innerText = lang.logoutBtn;
+      document.getElementById('lblSignInBtn').innerText = lang.signInBtn;
+      document.getElementById('lblCloseLogin').innerText = lang.closeBtn;
+
+      document.getElementById('lblNotifTitle').innerText = lang.notifTitle;
+      document.getElementById('lblClearDone').innerText = lang.clearDone;
+      document.getElementById('lblCloseNotif').innerText = lang.closeBtn;
+
+      document.getElementById('lblPrintSlip').innerText = lang.printSlip;
+      document.getElementById('lblAddItemsBack').innerText = lang.addItemsBack;
+      document.getElementById('lblReportToAdmin').innerText = lang.reportToAdmin;
+      document.getElementById('lblDeleteSlip').innerText = lang.deleteSlip;
+      document.getElementById('lblCloseSlip').innerText = lang.closeSlip;
+
+      updateCategoryPillCounts();
+      renderProducts();
+      updateCartUI();
+      renderInventory();
+      renderSalesHistory();
+      filterMgmtSelect();
+    }
+
+    function changeLanguage(langCode) {
+      currentLang = langCode;
+      localStorage.setItem('pos_language_v3', langCode);
+      applyLanguageUI();
+    }
+
+    function escapeHTML(str) { return typeof str === 'string' ? str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])) : str; }
+
+    function initData() {
+      const p = localStorage.getItem('pos_products_v3');
+      const s = localStorage.getItem('pos_sales_v3');
+      const r = localStorage.getItem('pos_requests_v3');
+      const st = localStorage.getItem('pos_settings_v3');
+      const l = localStorage.getItem('pos_language_v3');
+
+      if (l) currentLang = l;
+      document.getElementById('languageSelect').value = currentLang;
+
+      if (p) products = JSON.parse(p);
+      else createInitialProducts();
+
+      if (s) salesHistory = JSON.parse(s);
+      if (r) requests = JSON.parse(r);
+      if (st) shopSettings = JSON.parse(st);
+
+      updateSettingsUI();
+      updateRequestUI();
+      applyLanguageUI();
+    }
+
+    function saveData() {
+      localStorage.setItem('pos_products_v3', JSON.stringify(products));
+      localStorage.setItem('pos_sales_v3', JSON.stringify(salesHistory));
+      localStorage.setItem('pos_requests_v3', JSON.stringify(requests));
+      localStorage.setItem('pos_settings_v3', JSON.stringify(shopSettings));
+      updateCategoryPillCounts();
+    }
+
+    function createInitialProducts() {
+      const sampleNames = [
+        { name: 'Grand Royal Whisky', cat: 'Liquor', price: 12000 },
+        { name: 'Myanmar Beer Can', cat: 'Liquor', price: 3200 },
+        { name: 'အာလူးကြော်', cat: 'Snack', price: 1500 },
+        { name: 'ကြက်ကြော်', cat: 'Snack', price: 3500 },
+        { name: 'Coca Cola 1.25L', cat: 'Drink', price: 2500 },
+        { name: 'Spirulina Water', cat: 'Drink', price: 800 }
+      ];
+
+      products = [];
+      for(let i = 1; i <= 500; i++) {
+        const item = sampleNames[i % sampleNames.length];
+        products.push({
+          id: i,
+          code: String(i).padStart(4, '0'),
+          baseName: item.name,
+          name: `${item.name} #${i}`,
+          category: item.cat,
+          price: item.price,
+          stock: 50
+        });
+      }
+      saveData();
+    }
+
+    function updateCategoryPillCounts() {
+      const lang = translations[currentLang] || translations.my;
+      const allCount = products.length;
+      const liquorCount = products.filter(p => p.category === 'Liquor' || p.category === 'အရက်').length;
+      const snackCount = products.filter(p => p.category === 'Snack' || p.category === 'အမြည်း').length;
+      const drinkCount = products.filter(p => p.category === 'Drink' || p.category === 'အအေး').length;
+      const otherCount = products.filter(p => p.category === 'Other' || p.category === 'အခြား').length;
+
+      document.getElementById('catPillALL').innerText = `${lang.catAll} (${allCount})`;
+      document.getElementById('catPillLiquor').innerText = `${lang.catLiquor} (${liquorCount})`;
+      document.getElementById('catPillSnack').innerText = `${lang.catSnack} (${snackCount})`;
+      document.getElementById('catPillDrink').innerText = `${lang.catDrink} (${drinkCount})`;
+      document.getElementById('catPillOther').innerText = `${lang.catOther} (${otherCount})`;
+    }
+
+    function updateSettingsUI() {
+      document.getElementById('displayShopName').innerText = shopSettings.shopName;
+      document.getElementById('shopNameInput').value = shopSettings.shopName;
+      document.getElementById('shopAddressInput').value = shopSettings.address;
+      document.getElementById('shopPhoneInput').value = shopSettings.phone;
+      document.getElementById('shopFooterInput').value = shopSettings.receiptFooter;
+    }
+
+    function saveSettings() {
+      shopSettings.shopName = document.getElementById('shopNameInput').value;
+      shopSettings.address = document.getElementById('shopAddressInput').value;
+      shopSettings.phone = document.getElementById('shopPhoneInput').value;
+      shopSettings.receiptFooter = document.getElementById('shopFooterInput').value;
+
+      saveData();
+      updateSettingsUI();
+      alert('Saved Successfully!');
+    }
+
+    function filterCategory(cat, element) {
+      selectedCategory = cat;
+      document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const query = document.getElementById('searchBox').value.toLowerCase();
+      const grid = document.getElementById('productGrid');
+      const lang = translations[currentLang] || translations.my;
+
+      const filtered = products.filter(p => {
+        const matchesCat = (selectedCategory === 'ALL' || p.category === selectedCategory || 
+                           (selectedCategory === 'Liquor' && p.category === 'အရက်') ||
+                           (selectedCategory === 'Snack' && p.category === 'အမြည်း') ||
+                           (selectedCategory === 'Drink' && p.category === 'အအေး') ||
+                           (selectedCategory === 'Other' && p.category === 'အခြား'));
+        const displayName = getItemName(p).toLowerCase();
+        const matchesQuery = displayName.includes(query) || p.code.includes(query);
+        return matchesCat && matchesQuery;
+      });
+
+      grid.innerHTML = filtered.slice(0, displayedCount).map(p => `
+        <div class="product-card ${p.stock <= 0 ? 'out-of-stock' : ''}">
+          <div style="display:flex; justify-content:space-between;">
+            <span class="tag-category">${p.category}</span>
+            <span style="font-size:10px; font-weight:bold; color:${p.stock <= 5 ? 'var(--danger-color)' : 'var(--text-sub)'}">${p.stock} left</span>
+          </div>
+          <div style="font-weight:bold; margin:6px 0 2px 0;">${escapeHTML(getItemName(p))}</div>
+          <div style="font-size:11px; color:var(--gold-color);">Code: ${p.code}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <span style="font-weight:bold; color:var(--accent-color);">${p.price.toLocaleString()} K</span>
+            <button class="neu-btn neu-btn-primary" style="padding:4px 8px; font-size:10px;" onclick="addToCart(${p.id})">${lang.addBtn}</button>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('loadMoreBtn').style.display = displayedCount >= filtered.length ? 'none' : 'block';
+    }
+
+    function loadMoreProducts() { displayedCount += 50; renderProducts(); }
+
+    function addToCart(id) {
+      if (currentUser.role === 'GUEST') return openModal('loginModal');
+
+      const prod = products.find(p => p.id === id);
+      if (!prod || prod.stock <= 0) return alert('Stock Insufficient!');
+
+      prod.stock -= 1;
+      const cartItem = cart.find(c => c.id === id);
+      if (cartItem) cartItem.qty += 1;
+      else cart.push({ id: prod.id, code: prod.code, name: getItemName(prod), baseName: prod.baseName, price: prod.price, qty: 1 });
+
+      saveData();
+      renderProducts();
+      updateCartUI();
+    }
+
+    function updateCartQty(id, delta) {
+      const prod = products.find(p => p.id === id);
+      const cartItem = cart.find(c => c.id === id);
+
+      if (delta > 0) {
+        if (prod.stock <= 0) return alert('Stock Insufficient!');
+        prod.stock -= 1;
+        cartItem.qty += 1;
+      } else if (delta < 0) {
+        prod.stock += 1;
+        cartItem.qty -= 1;
+        if (cartItem.qty <= 0) cart = cart.filter(c => c.id !== id);
+      }
+
+      saveData();
+      renderProducts();
+      updateCartUI();
+    }
+
+    function removeFromCart(id) {
+      const cartItem = cart.find(c => c.id === id);
+      if (cartItem) {
+        const prod = products.find(p => p.id === id);
+        if (prod) prod.stock += cartItem.qty;
+        cart = cart.filter(c => c.id !== id);
+      }
+      saveData();
+      renderProducts();
+      updateCartUI();
+    }
+
+    function clearCart() {
+      cart.forEach(c => {
+        const prod = products.find(p => p.id === c.id);
+        if (prod) prod.stock += c.qty;
+      });
+      cart = [];
+      saveData();
+      renderProducts();
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const lang = translations[currentLang] || translations.my;
+      const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+      document.getElementById('topCartQty').innerText = totalQty;
+      document.getElementById('topCartTotal').innerText = `${totalPrice.toLocaleString()} Ks`;
+
+      document.getElementById('checkoutBadge').innerText = totalQty;
+      document.getElementById('checkoutBadge').style.display = totalQty > 0 ? 'block' : 'none';
+      document.getElementById('checkoutTotalDisplay').innerText = `${totalPrice.toLocaleString()} Ks`;
+
+      const list = document.getElementById('cartItemList');
+      if (cart.length === 0) {
+        list.innerHTML = `<p style="text-align:center; color:var(--text-sub); padding:20px 0;">${lang.emptyCart}</p>`;
+      } else {
+        list.innerHTML = cart.map(item => {
+          const prod = products.find(p => p.id === item.id);
+          const name = prod ? getItemName(prod) : item.name;
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px dashed rgba(255,255,255,0.1);">
+              <div>
+                <div style="font-weight:bold;">[${item.code}] ${escapeHTML(name)}</div>
+                <div style="font-size:11px; color:var(--accent-color);">${item.price.toLocaleString()} Ks × ${item.qty} = <strong>${(item.price * item.qty).toLocaleString()} Ks</strong></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <button class="neu-btn" style="padding:2px 8px;" onclick="updateCartQty(${item.id}, -1)">-</button>
+                <span style="font-weight:bold;">${item.qty}</span>
+                <button class="neu-btn" style="padding:2px 8px;" onclick="updateCartQty(${item.id}, 1)">+</button>
+                <button class="neu-btn neu-btn-danger" style="padding:2px 8px;" onclick="removeFromCart(${item.id})">🗑️</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+      calculateChange();
+    }
+
+    function calculateChange() {
+      const lang = translations[currentLang] || translations.my;
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const cash = parseFloat(document.getElementById('cashReceived').value) || 0;
+      const change = cash - totalPrice;
+      document.getElementById('changeAmount').value = (cash > 0 && change >= 0) ? `${change.toLocaleString()} Ks` : lang.notEnoughCash;
+    }
+
+    function processCheckout() {
+      if (cart.length === 0) return alert('Cart is empty!');
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const cash = parseFloat(document.getElementById('cashReceived').value) || 0;
+      if (cash < totalPrice) return alert('Cash received is insufficient!');
+
+      const checkoutItems = cart.map(item => {
+        const prod = products.find(p => p.id === item.id);
+        return {
+          id: item.id,
+          code: item.code,
+          name: prod ? getItemName(prod) : item.name,
+          price: item.price,
+          qty: item.qty
+        };
+      });
+
+      const sale = {
+        invoice: 'INV-' + Math.floor(100000 + Math.random() * 900000),
+        date: new Date().toLocaleString(),
+        cashier: currentUser.username,
+        items: checkoutItems,
+        total: totalPrice,
+        cash: cash,
+        change: cash - totalPrice
+      };
+
+      salesHistory.unshift(sale);
+      cart = [];
+      document.getElementById('cashReceived').value = '';
+      saveData();
+
+      updateCartUI();
+      renderProducts();
+      renderSalesHistory();
+      renderReceipt(sale);
+      openModal('receiptModal');
+    }
+
+    function renderReceipt(sale) {
+      currentActiveSale = sale;
+      document.getElementById('printableReceipt').innerHTML = `
+        <div style="text-align:center;">
+          <h3 style="margin-bottom:2px;">${escapeHTML(shopSettings.shopName)}</h3>
+          <div style="font-size:10px;">${escapeHTML(shopSettings.address)} | ${escapeHTML(shopSettings.phone)}</div>
+        </div>
+        <hr style="margin:8px 0;">
+        <div>Inv: ${sale.invoice}</div>
+        <div>Date: ${sale.date}</div>
+        <div>Cashier: ${sale.cashier}</div>
+        <hr style="margin:8px 0;">
+        ${sale.items.map(i => `
+          <div style="display:flex; justify-content:space-between;">
+            <span>${escapeHTML(i.name)} x${i.qty}</span>
+            <span>${(i.qty * i.price).toLocaleString()} Ks</span>
+          </div>
+        `).join('')}
+        <hr style="margin:8px 0;">
+        <div style="display:flex; justify-content:space-between; font-weight:bold;">
+          <span>Total:</span>
+          <span>${sale.total.toLocaleString()} Ks</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span>Cash:</span>
+          <span>${sale.cash.toLocaleString()} Ks</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span>Change:</span>
+          <span>${sale.change.toLocaleString()} Ks</span>
+        </div>
+        <hr style="margin:8px 0;">
+        <div style="text-align:center; font-size:10px;">${escapeHTML(shopSettings.receiptFooter)}</div>
+      `;
+    }
+
+    function requestOrDeleteSale() {
+      if (!currentActiveSale) return;
+
+      if (currentUser.role === 'ADMIN') {
+        if (confirm(`Confirm Delete Invoice: (${currentActiveSale.invoice})?`)) {
+          currentActiveSale.items.forEach(i => {
+            const prod = products.find(p => p.id === i.id);
+            if (prod) prod.stock += i.qty;
+          });
+          salesHistory = salesHistory.filter(s => s.invoice !== currentActiveSale.invoice);
+          saveData();
+          renderProducts();
+          renderSalesHistory();
+          closeModal('receiptModal');
+          alert('Sale Slip Deleted');
+        }
+      } else {
+        addRequest(`Request Delete Slip: Invoice [${currentActiveSale.invoice}] (${currentActiveSale.total.toLocaleString()} Ks)`);
+        closeModal('receiptModal');
+      }
+    }
+
+    function sendSlipReportToAdmin() {
+      if (!currentActiveSale) return;
+      const note = prompt("Report Note to Admin:", "Please check this slip");
+      if (note) {
+        addRequest(`[Slip Report] Invoice [${currentActiveSale.invoice}] - Note: ${note}`);
+        closeModal('receiptModal');
+      }
+    }
+
+    function addItemsBackToCart() {
+      if (!currentActiveSale) return;
+
+      currentActiveSale.items.forEach(item => {
+        const prod = products.find(p => p.id === item.id);
+        if (prod && prod.stock >= item.qty) {
+          prod.stock -= item.qty;
+          const cartItem = cart.find(c => c.id === item.id);
+          if (cartItem) cartItem.qty += item.qty;
+          else cart.push({ id: prod.id, code: prod.code, name: getItemName(prod), baseName: prod.baseName, price: prod.price, qty: item.qty });
+        }
+      });
+
+      saveData();
+      updateCartUI();
+      renderProducts();
+      closeModal('receiptModal');
+      switchTab('pageSales', document.querySelectorAll('.nav-item')[0]);
+      alert('Items re-added to cart!');
+    }
+
+    function renderSalesHistory() {
+      const container = document.getElementById('salesHistoryList');
+      const lang = translations[currentLang] || translations.my;
+
+      if (salesHistory.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:var(--text-sub);">${lang.noSalesHistory}</p>`;
+        return;
+      }
+
+      container.innerHTML = salesHistory.map((s, index) => `
+        <div class="neu-card" style="margin-bottom:10px; font-size:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openSaleSlipFromHistory(${index})">
+            <div>
+              <div style="font-weight:bold; color:var(--accent-color);">${s.invoice}</div>
+              <div style="font-size:10px; color:var(--text-sub);">${s.date} | Cashier: ${s.cashier}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:bold; color:var(--gold-color);">${s.total.toLocaleString()} Ks</div>
+              <span style="font-size:10px; color:var(--accent-light);">${lang.viewSlip}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openSaleSlipFromHistory(index) {
+      const sale = salesHistory[index];
+      if (sale) {
+        renderReceipt(sale);
+        openModal('receiptModal');
+      }
+    }
+
+    function generateReport(type) {
+      const box = document.getElementById('reportDisplayBox');
+      const lang = translations[currentLang] || translations.my;
+      box.style.display = 'block';
+
+      if (salesHistory.length === 0) {
+        box.innerHTML = `<b>${lang.noSalesHistory}</b>`;
+        return;
+      }
+
+      if (type === 'ALL') {
+        const totalRev = salesHistory.reduce((sum, s) => sum + s.total, 0);
+        box.innerHTML = `
+          <h4 style="color:var(--accent-color);">${lang.reportAll} Summary</h4>
+          <div style="margin-top:6px;">Total Revenue: <b>${totalRev.toLocaleString()} Ks</b></div>
+          <div>Total Invoices: <b>${salesHistory.length}</b></div>
+        `;
+      } else {
+        let itemMap = {};
+        salesHistory.forEach(s => {
+          s.items.forEach(i => {
+            if (!itemMap[i.name]) itemMap[i.name] = { qty: 0, total: 0 };
+            itemMap[i.name].qty += i.qty;
+            itemMap[i.name].total += (i.qty * i.price);
+          });
+        });
+
+        let html = `<h4 style="color:var(--accent-color); margin-bottom:8px;">${lang.reportSingle}</h4>`;
+        for (let name in itemMap) {
+          html += `
+            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+              <span>${escapeHTML(name)} (x${itemMap[name].qty})</span>
+              <span style="color:var(--gold-color); font-weight:bold;">${itemMap[name].total.toLocaleString()} Ks</span>
+            </div>
+          `;
+        }
+        box.innerHTML = html;
+      }
+    }
+
+    function renderInventory() {
+      const query = document.getElementById('invSearchBox').value.toLowerCase();
+      const container = document.getElementById('inventoryList');
+
+      const filtered = products.filter(p => {
+        const displayName = getItemName(p).toLowerCase();
+        return displayName.includes(query) || p.code.includes(query);
+      });
+
+      container.innerHTML = filtered.slice(0, displayedInvCount).map(p => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+          <div>
+            <div style="font-weight:bold;">[${p.code}] ${escapeHTML(getItemName(p))} (${p.category})</div>
+            <div style="font-size:11px; color:var(--text-sub);">${p.price.toLocaleString()} Ks</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="neu-btn" onclick="adjustStockDirect(${p.id}, -1)">-1</button>
+            <span style="font-weight:bold; min-width:30px; text-align:center;">${p.stock}</span>
+            <button class="neu-btn" onclick="adjustStockDirect(${p.id}, 1)">+1</button>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('loadMoreInvBtn').style.display = displayedInvCount >= filtered.length ? 'none' : 'block';
+    }
+
+    function loadMoreInventory() { displayedInvCount += 50; renderInventory(); }
+
+    function adjustStockDirect(id, delta) {
+      if (currentUser.role === 'GUEST') return openModal('loginModal');
+
+      const prod = products.find(p => p.id === id);
+      if (currentUser.role === 'ADMIN') {
+        prod.stock += delta;
+        saveData();
+        renderInventory();
+        renderProducts();
+      } else {
+        addRequest(`Stock Adjust (${delta}) - [${prod.code}] ${getItemName(prod)}`);
+      }
+    }
+
+    function submitStockAdjustment() {
+      if (currentUser.role === 'GUEST') return openModal('loginModal');
+
+      const id = parseInt(document.getElementById('mgmtItemSelect').value);
+      const type = document.getElementById('mgmtType').value;
+      const qty = parseInt(document.getElementById('mgmtQty').value) || 0;
+      const reason = document.getElementById('mgmtReason').value;
+
+      const prod = products.find(p => p.id === id);
+      if (!prod || qty <= 0) return alert('Please enter valid data!');
+
+      if (currentUser.role === 'ADMIN') {
+        prod.stock -= qty;
+        saveData();
+        renderInventory();
+        renderProducts();
+        alert(`ADMIN CONFIRMED: ${getItemName(prod)} Stock reduced by ${qty}`);
+      } else {
+        addRequest(`[${type}] ${getItemName(prod)} - ${qty} pcs (Reason: ${reason})`);
+      }
+    }
+
+    function addRequest(actionText) {
+      const now = new Date();
+      const exactDate = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+
+      const req = {
+        id: Date.now(),
+        staff: currentUser.username,
+        action: actionText,
+        date: exactDate,
+        status: 'PENDING'
+      };
+
+      requests.unshift(req);
+      saveData();
+      updateRequestUI();
+      alert('Request sent to Admin!');
+    }
+
+    function updateRequestUI() {
+      const pendingCount = requests.filter(r => r.status === 'PENDING').length;
+      document.getElementById('notifCount').innerText = pendingCount;
+
+      const list = document.getElementById('notifList');
+      if (requests.length === 0) {
+        list.innerHTML = '<p style="text-align:center; color:var(--text-sub); padding:10px;">No requests available</p>';
+        return;
+      }
+
+      list.innerHTML = requests.map(r => `
+        <div class="neu-card" style="margin-bottom:8px; font-size:12px; background:var(--bg-color);">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="font-weight:bold; color:var(--gold-color);">👤 ${escapeHTML(r.staff)}</span>
+            <span class="status-badge status-${r.status}">${r.status}</span>
+          </div>
+          <div style="font-size:11px; margin-bottom:4px;">${escapeHTML(r.action)}</div>
+          <div style="font-size:9px; color:var(--text-sub); margin-bottom:6px;">🕒 ${r.date}</div>
+          
+          ${currentUser.role === 'ADMIN' && r.status === 'PENDING' ? `
+            <div style="display:flex; gap:6px; margin-top:6px;">
+              <button class="neu-btn neu-btn-primary" style="flex:1; font-size:10px; padding:3px;" onclick="processRequest(${r.id}, 'APPROVED')">Approve</button>
+              <button class="neu-btn neu-btn-danger" style="flex:1; font-size:10px; padding:3px;" onclick="processRequest(${r.id}, 'REJECTED')">Reject</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function processRequest(reqId, newStatus) {
+      const req = requests.find(r => r.id === reqId);
+      if (req) {
+        req.status = newStatus;
+        saveData();
+        updateRequestUI();
+      }
+    }
+
+    function clearCompletedRequests() {
+      requests = requests.filter(r => r.status === 'PENDING');
+      saveData();
+      updateRequestUI();
+    }
+
+    function handleLogin() {
+      const role = document.getElementById('loginRole').value;
+      const user = document.getElementById('loginUser').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+
+      if (role === 'Admin' && pass === 'admin123') {
+        currentUser = { role: 'ADMIN', username: 'Admin' };
+      } else if (role === 'Staff' && pass === '1234') {
+        currentUser = { role: 'STAFF', username: user || 'Staff' };
+      } else {
+        return alert('Incorrect Password!');
+      }
+
+      document.getElementById('currentUserBadge').innerText = `${currentUser.role} (${currentUser.username})`;
+      document.getElementById('loginBtnText').innerText = currentUser.username;
+      closeModal('loginModal');
+      updateRequestUI();
+    }
+
+    function handleLogout() {
+      const lang = translations[currentLang] || translations.my;
+      currentUser = { role: 'GUEST', username: 'Guest' };
+      document.getElementById('currentUserBadge').innerText = lang.guestMode;
+      document.getElementById('loginBtnText').innerText = lang.login;
+      closeModal('loginModal');
+    }
+
+    function populateMgmtSelect() {
+      const searchBox = document.getElementById('mgmtCodeSearch');
+      if (searchBox) searchBox.value = '';
+      filterMgmtSelect();
+    }
+
+    function filterMgmtSelect() {
+      const query = (document.getElementById('mgmtCodeSearch').value || '').toLowerCase();
+      const select = document.getElementById('mgmtItemSelect');
+      const filtered = products.filter(p => p.code.toLowerCase().includes(query) || getItemName(p).toLowerCase().includes(query));
+      
+      if (filtered.length === 0) {
+        select.innerHTML = '<option value="">No Items Found</option>';
+      } else {
+        select.innerHTML = filtered.map(p => `<option value="${p.id}">[${p.code}] ${getItemName(p)}</option>`).join('');
+      }
+    }
+
+    function switchTab(pageId, btn) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      btn.classList.add('active');
+
+      if (pageId === 'pageInventory') renderInventory();
+      if (pageId === 'pageManage') populateMgmtSelect();
+      if (pageId === 'pageHistory') renderSalesHistory();
+    }
+
+    function openModal(id) { 
+      if (id === 'loginModal') {
+        document.getElementById('loggedInView').style.display = currentUser.role !== 'GUEST' ? 'block' : 'none';
+        document.getElementById('loginFormView').style.display = currentUser.role === 'GUEST' ? 'block' : 'none';
+        if (currentUser.role !== 'GUEST') document.getElementById('loggedInUserText').innerText = `${currentUser.role}: ${currentUser.username}`;
+      }
+      document.getElementById(id).classList.add('active'); 
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    initData();
+  </script>
+</body>
+</html>
 
